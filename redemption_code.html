@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Redemption Code</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            color: #f5f5f7;
+            position: relative;
+        }
+
+        body::before {
+            --line: hsl(0 0% 15% / 0.5);
+            content: "";
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            background:
+                linear-gradient(90deg, var(--line) 1px, transparent 1px 10vmin) 0 -5vmin / 10vmin 10vmin,
+                linear-gradient(var(--line) 1px, transparent 1px 10vmin) 0 -5vmin / 10vmin 10vmin;
+            mask: linear-gradient(-15deg, transparent 30%, white);
+            top: 0;
+            z-index: -1;
+        }
+
+        .container {
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            padding: 25px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, #0095ff, #b000ff, #ff2d55);
+        }
+
+        .logo {
+            margin-bottom: 15px;
+        }
+
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #0095ff, #b000ff, #ff2d55);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+        }
+
+        h1::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: linear-gradient(90deg, #0095ff, #b000ff, #ff2d55);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: blur(10px);
+            opacity: 0.5;
+        }
+
+        .code-container {
+            background: rgba(20, 20, 20, 0.8);
+            border-radius: 12px;
+            padding: 15px 10px;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .code-type {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #0095ff, #b000ff);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .code {
+            font-size: 1.8rem;
+            display: flex;
+            flex-wrap: nowrap;
+            color: hsl(0 0% 100%);
+            border-radius: 8px;
+            background: hsl(0 0% 6%);
+            justify-content: center;
+            box-shadow: 0 1px hsl(0 0% 100% / 0.1) inset;
+            margin: 15px 0 5px;
+            user-select: none;
+        }
+
+        .code:hover {
+            cursor: grab;
+        }
+
+        .digit {
+            display: flex;
+            height: 100%;
+            padding: 1.2rem 0.3rem;
+            list-style: none;
+        }
+
+        .digit:focus-visible {
+            outline-color: hsl(0 0% 50% / 0.25);
+            outline-offset: 0.5rem;
+        }
+
+        .digit span {
+            scale: calc(var(--active, 0) + 0.5);
+            filter: blur(calc((1 - var(--active, 0)) * 0.8rem));
+            transition: scale calc(((1 - var(--active, 0)) + 0.2) * 0.8s), filter calc(((1 - var(--active, 0)) + 0.2) * 0.8s);
+        }
+
+        .digit:first-of-type {
+            padding-left: 1rem;
+        }
+
+        .digit:last-of-type {
+            padding-right: 1rem;
+        }
+
+        :root {
+            --lerp-0: 1; /* === sin(90deg) */
+            --lerp-1: 0.9659;
+            --lerp-2: 0.7071;
+            --lerp-3: 0.5736;
+            --lerp-4: 0.4226;
+            --lerp-5: 0.2588;
+        }
+
+        .digit:is(:hover, :focus-visible) {
+            --active: var(--lerp-0);
+        }
+
+        .digit:is(:hover, :focus-visible) + .digit,
+        .digit:has(+ .digit:is(:hover, :focus-visible)) {
+            --active: var(--lerp-1);
+        }
+
+        .digit:is(:hover, :focus-visible) + .digit + .digit,
+        .digit:has(+ .digit + .digit:is(:hover, :focus-visible)) {
+            --active: var(--lerp-2);
+        }
+
+        .digit:is(:hover, :focus-visible) + .digit + .digit + .digit,
+        .digit:has(+ .digit + .digit + .digit:is(:hover, :focus-visible)) {
+            --active: var(--lerp-3);
+        }
+
+        .digit:is(:hover, :focus-visible) + .digit + .digit + .digit + .digit,
+        .digit:has(+ .digit + .digit + .digit + .digit:is(:hover, :focus-visible)) {
+            --active: var(--lerp-4);
+        }
+
+        .digit:is(:hover, :focus-visible) + .digit + .digit + .digit + .digit + .digit,
+        .digit:has(+ .digit + .digit + .digit + .digit + .digit:is(:hover, :focus-visible)) {
+            --active: var(--lerp-5);
+        }
+
+        .reveal-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+            background: linear-gradient(hsl(0 0% 80%), hsl(0 0% 50%));
+            color: transparent;
+            background-clip: text;
+            -webkit-background-clip: text;
+        }
+
+        .instructions {
+            margin: 20px 0;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .instructions strong {
+            color: #fff;
+        }
+
+        .instructions ol {
+            margin-left: 15px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        .button {
+            background: #0377fc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            background: #0456b8;
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(3, 119, 252, 0.4);
+        }
+
+        .copy-button {
+            background: linear-gradient(90deg, #0095ff, #b000ff);
+            margin-top: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .copy-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s ease;
+            z-index: 1;
+        }
+
+        .copy-button:hover::before {
+            left: 100%;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .success-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .success-message.show {
+            opacity: 1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .button-group .button {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 400px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .code {
+                font-size: 1.5rem;
+            }
+
+            .digit {
+                padding: 1rem 0.2rem;
+            }
+
+            .digit:first-of-type {
+                padding-left: 0.5rem;
+            }
+
+            .digit:last-of-type {
+                padding-right: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/A_logo_for_a_Fiverr-like_website_combining_the_letters_W_and_I.png-fMyhIgAw5wNxSQrdKdvtvGAqd3Hnh5.jpeg" alt="Company Logo">
+        </div>
+        <h1 data-text="Your Redemption Code">Your Redemption Code</h1>
+
+        <div id="codeContainer" class="code-container">
+            <div class="code-type" id="codeTypeDisplay">TOKEN PACK</div>
+            <p class="reveal-text">Glide To Reveal Secret Code</p>
+            <ul class="code" id="codeDigits">
+                <!-- Digits will be inserted here by JavaScript -->
+            </ul>
+        </div>
+
+        <button class="button copy-button" onclick="copyCode()">Copy Code</button>
+
+        <div class="instructions">
+            <p><strong>How to redeem your code:</strong></p>
+            <ol>
+                <li>Log in to your account</li>
+                <li>Navigate to the "Redeem Code" section</li>
+                <li>Enter the code exactly as shown above</li>
+                <li>Click "Redeem" to add tokens to your account</li>
+            </ol>
+            <p><strong>Note:</strong> This code can only be used once and expires in 30 days.</p>
+        </div>
+
+        <div class="button-group">
+            <button class="button" onclick="window.location.href='/redeem_code/'">Go to Redemption</button>
+        </div>
+
+        <div class="footer">
+            &copy; 2025 Your Company. All rights reserved.
+        </div>
+    </div>
+
+    <div class="success-message" id="successMessage">Code copied to clipboard!</div>
+
+    <script>
+        window.onload = function() {
+            // Define the initial set of token codes
+            const initialTokenCodes = [
+                "T-30FD-ACEF-8",
+                    "T-A05F-7E3C-8",
+                    "T-85F7-3BD4-1",
+                    "T-8157-930E-8",
+                    "T-7694-127D-0",
+                    "T-491F-7065-8",
+
+                    "T-D8BB-B2CF-9",
+                    "T-C3A3-2ED1-0",
+                    "T-5FD0-4BFF-7",
+                    "T-1937-9FF1-8",
+                    "T-62A1-230B-3",
+                    "T-059A-11B7-2",
+                    "T-7918-FDEC-1",
+                    "T-C532-7634-3",
+                    "T-2B6D-23A1-3",
+                    "T-EA61-44FC-8",
+                    "T-DF63-3537-3",
+                    "T-70E1-4FB0-7",
+                    "T-2E3F-465E-8",
+                    "T-5D53-7AE4-6",
+                    "T-OEF2-FB07-6",
+                    "T-99CD-D844-7",
+                    "T-2535-2816-6",
+                    "T-D715-9C21-8",
+                    "T-7E82-D951-7",
+                    "T-8009-5D98-3",
+                    "T-D5B0-444C-8",
+                    "T-65A9-1F83-5",
+                    "T-466A-A31D-8",
+                    "T-81CC-D540-0",
+                    "T-082D-OFE6-3",
+                    "T-E906-B801-7",
+                    "T-F804-ABFD-5",
+                    "T-CF3F-6CF1-8",
+                    "T-0A4E-985A-5",
+                    "T-3CA3-EBBC-2",
+                    "T-0B73-7B93-9",
+                    "T-92BF-BE-5152-8",   // merged from "T-92BF" and "BE-5152-8"
+                    "T-AF42-2772-7",
+                    "T-4FC7-0B8C-1",
+                    "T-0E11-A1AC-1",
+                    "T-FFA4-D1FE-3",
+                    "T-A4E6-378B-8",
+                    "T-029D-C98E-2",
+                    "T-5A77-2D03-5",
+                    "T-2199-38A3-6",
+                    "T-BC73-B64E-0",
+                    "T-06EE-7FA6-4",
+                    "T-D84A-74FC-5",
+                    "T-D6F1-0799-8",
+                    "T-3A3A-AFD1-4",
+                    "T-E5FC-292A-1",
+                    "T-E31E-D927-8",
+                    "T-2674-2A0E-3",
+                    "T-4657-7264-5",
+                    "T-0092-133F-4",
+                    "T-BFA7-0354-0",
+                    "T-55F3-A971-3",
+                    "T-C314-749D-1",
+                    "T-A170-4D82-3",
+                    "T-CBEC-ODCA-7",
+                    "T-F9E4-8266-2",
+                    "T-D05A-E3F1-3",
+                    "T-9794-E60F-2",
+                    "T-55DD-EE40-0",
+                    "T-9D27-232A-6",
+                    "T-1DF6-0047-4",
+                    "T-3F46-2C39-2",
+                    "T-4E05-401C-8",
+                    "T-F350-F12D-9",
+                    "T-BFCC-B2A7-6",
+                    "T-6F0C-9176-4",
+                    "T-FC5E-95A2-4",
+                    "T-FEA6-0D58-3",
+                    "T-CF61-43DB-7",
+                    "T-2081-EA85-6",
+                    "T-4450-59C3-3",
+                    "T-64BF-B164-3",
+                    "T-F22F-1FD6-1",
+                    "T-B2AA-6E15-1",
+                    "T-6AD5-807C-6",
+                    "T-7184-0E24-1",
+                    "T-4FF4-F40D-2",
+                    "T-DCC0-5DF8-7",
+                    "T-F462-44D1-7",
+                    "T-7483-8724-7",
+                    "T-F371-AC26-1",
+                    "T-C62C-A051-3",
+                    "T-C184-4BE2-1",
+                    "T-1D7D-5F1D-0",
+                    "T-8A72-094B-9",
+                    "T-614D-F940-0",
+                    "T-D549-FB01-3",
+                    "T-B547-B48E-9",
+                    "T-94FA-4058-3",
+                    "T-2509-7B0D-5",
+                    "T-CAC7-3CF7-7",
+                    "T-F615-4482-6",
+                    "T-3FFA-B88A-9",
+                    "T-50B1-1283-2",
+                    "T-FC42-C556-6",
+                    "T-2205-DA07-7",
+                    "T-65B1-9A02-2",
+                    "T-4D0F-7A83-5",
+                    "T-DE4F-8DF0-1",
+                    "T-9928-D377-9",
+                    "T-8E00-4911-8",
+                    "T-E7D9-D806-5",
+                    "T-C14A-921E-8",
+                    "T-DABO-5EDA-2",
+                    "T-DFB4-6D77-8",
+                    "T-E2BF-FA91-6",
+                    "T-6A53-36FC-5",
+                    "T-0623-1FE0-9",
+                    "T-7074-A769-1",
+                    "T-1C52-AC06-3",
+                    "T-CA2A-872C-5",
+                    "T-2C56-41F9-2",
+                    "T-A5DB-C333-2",
+                    "T-F6E2-484D-1",
+                    "T-7B8C-32CB-8",
+                    "T-B4AB-C12B-1",
+                    "T-36C4-F9CC-5",
+                    "T-7ADC-9901-6",
+                    "T-631D-B14C-6",
+                    "T-4DFD-8AF8-5",
+                    "T-97D3-7180-9",
+                    "T-3A00-970F-2",
+                    "T-0458-B582-4",
+                    "T-94BB-364F-8",
+                    "T-60B3-E121-6",
+                    "T-D563-50D8-1",
+                    "T-C429-24E9-4",
+                    "T-3968-07E8-6",
+                    "T-1936-4E2C-9",
+                    "T-29AA-421F-8",
+                    "T-CE4E-4345-5",
+                    "T-9485-565F-8",
+                    "T-2610-5FD2-2",
+                    "T-2010-AF51-2",
+                    "T-92BA-3103-7",
+                    "T-57EE-41EC-3",
+                    "T-0028-50B4-1",
+                    "T-AC5A-27D5-6",
+                    "T-A38E-F16A-9",
+                    "T-5590-A3DD-3",
+                    "T-2EFF-1EA2-2",
+                    "T-1085-4AB5-2",
+                    "T-2CB1-4CD1-8",
+                    "T-2B1C-D652-7",
+                    "T-6F3E-045C-4",
+                    "T-0049-B991-4",
+                    "T-A9AB-7C16-8",
+                    "T-OD5B-13FA-0",
+                    "T-6BA4-A709-2",
+                    "T-A3E8-E3D3-0",
+                    "T-6C56-F511-9",
+                    "T-92B9-0FC5-8"
+
+
+            ];
+
+            // Retrieve the current list from localStorage, or initialize it if not present
+            let tokenCodes = localStorage.getItem("tokenCodes");
+            if (tokenCodes) {
+                tokenCodes = JSON.parse(tokenCodes);
+            } else {
+                // Create a copy of the initial list so we don't modify the original array
+                tokenCodes = initialTokenCodes.slice();
+                localStorage.setItem("tokenCodes", JSON.stringify(tokenCodes));
+            }
+
+            // If no codes remain, display a message and exit
+            if (tokenCodes.length === 0) {
+                document.getElementById('codeTypeDisplay').textContent = "No codes available";
+                return;
+            }
+
+            // Randomly select a code from the array
+            const randomIndex = Math.floor(Math.random() * tokenCodes.length);
+            const randomCode = tokenCodes[randomIndex];
+
+            // Remove the selected code so it won't appear again
+            tokenCodes.splice(randomIndex, 1);
+            localStorage.setItem("tokenCodes", JSON.stringify(tokenCodes));
+
+            // Update the display label
+            document.getElementById('codeTypeDisplay').textContent = "TOKEN PACK";
+
+            // Create digit elements for the code display
+            const codeDigits = document.getElementById('codeDigits');
+            codeDigits.innerHTML = ''; // Clear any existing content
+
+            [...randomCode].forEach(char => {
+                const digitElement = document.createElement('li');
+                digitElement.className = 'digit';
+                digitElement.tabIndex = 0;
+
+                const spanElement = document.createElement('span');
+                spanElement.textContent = char;
+
+                digitElement.appendChild(spanElement);
+                codeDigits.appendChild(digitElement);
+            });
+
+            // Store the code for later copying
+            window.redemptionCode = randomCode;
+        };
+
+        function copyCode() {
+            navigator.clipboard.writeText(window.redemptionCode)
+                .then(() => {
+                    const successMessage = document.getElementById('successMessage');
+                    successMessage.classList.add('show');
+                    setTimeout(() => {
+                        successMessage.classList.remove('show');
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Error copying code: ', err);
+                    alert('Failed to copy code. Please try again.');
+                });
+        }
+    </script>
+
+
+</body>
+</html>
